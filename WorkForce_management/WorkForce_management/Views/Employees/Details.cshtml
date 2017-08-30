@@ -1,0 +1,69 @@
+@model WorkForce_management.Models.ViewModels.EmployeeDetailViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Employee</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.FirstName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FirstName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.LastName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Employee.LastName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.StartDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Employee.StartDate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.Department)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Employee.Department.DepartmentName)
+            
+        </dd>
+        
+        <dt>
+        
+            @Html.DisplayNameFor(model => model.Employee.EmployeeComputers)
+
+        
+           
+        </dt>
+       @foreach (var computer in Model.Computers)
+       {
+        <dd>
+            @computer.ComputerMake
+        </dd>
+       }
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.TrainingProgramEmployee)
+        </dt>
+        @foreach (var program in Model.TrainingPrograms)
+        {
+            <dd>
+                @program.TraingingProgramName
+            </dd>
+
+        }
+        
+
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Employee.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
