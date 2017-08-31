@@ -1,0 +1,37 @@
+@model WorkForce_management.Models.ViewModels.ComputerDetailViewModel
+
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Computer</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Computer.ComputerMake)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Computer.ComputerMake)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Computer.ComputerManufacturer)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Computer.ComputerManufacturer)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Computer.PurchaseDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Computer.PurchaseDate)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Computer.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
