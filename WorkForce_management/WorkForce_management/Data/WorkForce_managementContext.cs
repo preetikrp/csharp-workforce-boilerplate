@@ -21,5 +21,10 @@ namespace WorkForce_management.Models
         public DbSet<WorkForce_management.Models.Computer> Computer { get; set; }
 
         public DbSet<WorkForce_management.Models.TrainingProgram> TrainingProgram { get; set; }
+
+        public DbSet<WorkForce_management.Models.TrainingProgramEmployee> TrainingProgramEmployee { get; set; }
+
+        public DbSet<WorkForce_management.Models.EmployeeComputer> EmployeeComputer { get; set; }
+
     }
 }

@@ -14,9 +14,11 @@ namespace WorkForce_management.Controllers
     {
         private readonly WorkForce_managementContext _context;
 
+        public int ProgramId { get; private set; }
+
         public EmployeesController(WorkForce_managementContext context)
         {
-            _context = context;    
+            _context = context;
         }
 
         // GET: Employees
@@ -36,8 +38,8 @@ namespace WorkForce_management.Controllers
 
             var employee = await _context.Employee
                 .Include(e => e.Department)
-                .Include (e =>e.EmployeeComputers)
-                .Include (e =>e.TrainingProgramEmployee)
+                .Include(e => e.EmployeeComputers)
+                .Include(e => e.TrainingProgramEmployee)
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (employee == null)
 
@@ -45,14 +47,14 @@ namespace WorkForce_management.Controllers
                 return NotFound();
             }
             EmployeeDetailViewModel EmployeeDetailViewModel = new EmployeeDetailViewModel();
-            foreach(var TrainingProgram in employee.TrainingProgramEmployee)
+            foreach (var TrainingProgram in employee.TrainingProgramEmployee)
             {
                 var Training = _context.TrainingProgram.SingleOrDefault(t => t.Id == TrainingProgram.TrainingId);
                 EmployeeDetailViewModel.TrainingPrograms.Add(Training);
-                
+
 
             }
-            foreach(var Computer in employee.EmployeeComputers)
+            foreach (var Computer in employee.EmployeeComputers)
             {
                 var EmployeeComputers = _context.Computer.SingleOrDefault(c => c.Id == Computer.ComputerId);
                 EmployeeDetailViewModel.Computers.Add(EmployeeComputers);
@@ -93,17 +95,18 @@ namespace WorkForce_management.Controllers
                 return NotFound();
             }
             var viewModel = new EmployeeEditViewModel();
-            viewModel.employee =  await _context.Employee.SingleOrDefaultAsync(m => m.Id == id);
+            viewModel.employee = await _context.Employee.SingleOrDefaultAsync(m => m.Id == id);
             viewModel.Computer = new List<int>();
             viewModel.TrainingProgramEmployee = new List<int>();
+
             if (viewModel.employee == null)
             {
                 return NotFound();
             }
             ViewData["ComputerId"] = new SelectList(_context.Computer, "Id", "ComputerMake");
-                
+
             ViewData["TrainingProgramId"] = new SelectList(_context.TrainingProgram, "Id", "TraingingProgramName");
-                
+
             ViewData["DepartmentId"] = new SelectList(_context.Department, "Id", "DepartmentName", viewModel.employee.DepartmentId);
 
 
@@ -126,32 +129,83 @@ namespace WorkForce_management.Controllers
             {
                 try
                 {
+                    _context.Update(viewModel.employee);
+
+                    // Determine which training programs the current employee is assigned to
+                    var matchingRecord = _context.TrainingProgramEmployee.Where(t => t.EmployeeId == id);
+
+
+
+
+                    // Iterate over that collection, and remove each one from the database
+                    foreach (var tp in matchingRecord)
+                    {
+                        _context.Remove(tp);
+                       
+                    }
+
+
+                    // Now, save the new ones that the user selected in the form
                     foreach (int ProgramId in viewModel.TrainingProgramEmployee)
                     {
-                        TrainingProgramEmployee TrainingProgramEmployee = new TrainingProgramEmployee()
-                        {
-                            EmployeeId = viewModel.employee.Id,
-                            TrainingId = _context.TrainingProgram.SingleOrDefault(t => t.Id == ProgramId).Id
 
-                        };
-                        _context.Add(TrainingProgramEmployee);
+                        var employee = await _context.Employee
+                        .Include(e => e.Department)
+                        .Include(e => e.EmployeeComputers)
+                        .Include(e => e.TrainingProgramEmployee)
+                        .SingleOrDefaultAsync(m => m.Id == id);
+
+                        var query = employee.TrainingProgramEmployee.Where(x => x.TrainingId.Equals(ProgramId));
+
+                        if (query.Count() == 0)
+                        {
+                            TrainingProgramEmployee TrainingProgramEmployee = new TrainingProgramEmployee()
+
+
+                            {
+                                EmployeeId = viewModel.employee.Id,
+                                TrainingId = _context.TrainingProgram.SingleOrDefault(t => t.Id == ProgramId).Id
+
+                            };
+                            _context.Add(TrainingProgramEmployee);
+                        }
+                        
+                
                     }
-                    _context.Update(viewModel.employee);
-                  
+
+                    // Determine which Computer the current employee is assigned to
+
+
+                    var matchingComputer = _context.EmployeeComputer.Where(c => c.EmployeeId == id);
+
+                    // Iterate over that collection, and remove each one from the database
+                    foreach (var ec in matchingComputer)
+                    {
+                        _context.Remove(ec);
+
+
+                    }
+
                     foreach (int ComputerId in viewModel.Computer)
                     {
                         EmployeeComputer Computer = new EmployeeComputer()
                         {
                             EmployeeId = viewModel.employee.Id,
-                           ComputerId = _context.Computer.SingleOrDefault(c => c.Id == ComputerId).Id
+                            ComputerId = _context.Computer.SingleOrDefault(c => c.Id == ComputerId).Id
 
                         };
                         _context.Add(Computer);
-                        await _context.SaveChangesAsync();
                     }
-                    _context.Update(viewModel.employee);
+
+                    
+                    await _context.SaveChangesAsync();
+
+
+
+                    return RedirectToAction("Index");
+                    
                 }
-               
+
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!EmployeeExists(viewModel.employee.Id))
@@ -163,7 +217,7 @@ namespace WorkForce_management.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction("Index");
+               
             }
             ViewData["DepartmentId"] = new SelectList(_context.Department, "Id", "DepartmentName", viewModel.employee.DepartmentId);
             return View(viewModel);
