@@ -14,6 +14,8 @@ namespace WorkForce_management.Controllers
     {
         private readonly WorkForce_managementContext _context;
 
+        public int ProgramId { get; private set; }
+
         public EmployeesController(WorkForce_managementContext context)
         {
             _context = context;
@@ -96,6 +98,7 @@ namespace WorkForce_management.Controllers
             viewModel.employee = await _context.Employee.SingleOrDefaultAsync(m => m.Id == id);
             viewModel.Computer = new List<int>();
             viewModel.TrainingProgramEmployee = new List<int>();
+
             if (viewModel.employee == null)
             {
                 return NotFound();
@@ -128,6 +131,21 @@ namespace WorkForce_management.Controllers
                 {
                     _context.Update(viewModel.employee);
 
+                    // Determine which training programs the current employee is assigned to
+                    var matchingRecord = _context.TrainingProgramEmployee.Where(t => t.EmployeeId == id);
+
+
+
+
+                    // Iterate over that collection, and remove each one from the database
+                    foreach (var tp in matchingRecord)
+                    {
+                        _context.Remove(tp);
+                       
+                    }
+
+
+                    // Now, save the new ones that the user selected in the form
                     foreach (int ProgramId in viewModel.TrainingProgramEmployee)
                     {
 
@@ -141,8 +159,9 @@ namespace WorkForce_management.Controllers
 
                         if (query.Count() == 0)
                         {
-                            
                             TrainingProgramEmployee TrainingProgramEmployee = new TrainingProgramEmployee()
+
+
                             {
                                 EmployeeId = viewModel.employee.Id,
                                 TrainingId = _context.TrainingProgram.SingleOrDefault(t => t.Id == ProgramId).Id
@@ -153,22 +172,33 @@ namespace WorkForce_management.Controllers
                         
                 
                     }
-                    
-                    
-                        foreach (int ComputerId in viewModel.Computer)
+
+                    // Determine which Computer the current employee is assigned to
+
+
+                    var matchingComputer = _context.EmployeeComputer.Where(c => c.EmployeeId == id);
+
+                    // Iterate over that collection, and remove each one from the database
+                    foreach (var ec in matchingComputer)
+                    {
+                        _context.Remove(ec);
+
+
+                    }
+
+                    foreach (int ComputerId in viewModel.Computer)
+                    {
+                        EmployeeComputer Computer = new EmployeeComputer()
                         {
-                            EmployeeComputer Computer = new EmployeeComputer()
-                            {
-                                EmployeeId = viewModel.employee.Id,
-                                ComputerId = _context.Computer.SingleOrDefault(c => c.Id == ComputerId).Id
+                            EmployeeId = viewModel.employee.Id,
+                            ComputerId = _context.Computer.SingleOrDefault(c => c.Id == ComputerId).Id
 
-                            };
-                            _context.Add(Computer);
-                        }
+                        };
+                        _context.Add(Computer);
+                    }
 
-
+                    
                     await _context.SaveChangesAsync();
-
 
 
 
